@@ -1,0 +1,184 @@
+/* Shared brand pieces used by the website and the auth pages:
+   logo + reveal, the route signature, and base keyframes. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Logo ---------- */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34em;
+  color: var(--j-n-950);
+  line-height: 1;
+}
+.logo-mark {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+.logo-word {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.logo-spine {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 13;
+  stroke-linecap: round;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.05;
+}
+.logo-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.logo-idle .logo-dot {
+  opacity: 0;
+}
+.logo-play .logo-spine-big {
+  animation: j-draw 520ms var(--j-ease) forwards;
+}
+.logo-play .logo-spine-small {
+  animation: j-draw 460ms var(--j-ease) 200ms forwards;
+}
+.logo-play .logo-dot {
+  opacity: 0;
+  animation: logo-dot 300ms var(--j-ease) 600ms forwards;
+}
+@keyframes j-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes logo-dot {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Route signature
+   ========================================================================== */
+.rs {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.rs-path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.02;
+}
+.rs-a,
+.rs-b {
+  stroke-width: 4.5;
+}
+.rs-shared-road {
+  stroke-width: 13;
+}
+.rs-shared-rider {
+  stroke-width: 4;
+}
+.rs-pin,
+.rs-label {
+  opacity: 0;
+}
+.rs-pulse {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.rs-tag-title {
+  font: 600 13px/1 var(--j-font);
+}
+.rs-tag-sub {
+  font: 500 11px/1 var(--j-font);
+}
+:is(.is-live, .is-in) .rs-a,
+:is(.is-live, .is-in) .rs-b {
+  animation: j-draw var(--j-d-route) var(--j-ease) 500ms forwards;
+}
+:is(.is-live, .is-in) .rs-shared-road,
+:is(.is-live, .is-in) .rs-shared-rider {
+  animation: j-draw var(--j-d-match) var(--j-ease) 1150ms forwards;
+}
+:is(.is-live, .is-in) .rs-pin-a,
+:is(.is-live, .is-in) .rs-pin-b {
+  animation: j-appear var(--j-d-ui) var(--j-ease) 380ms forwards;
+}
+:is(.is-live, .is-in) .rs-pin-merge {
+  animation: j-appear var(--j-d-ui) var(--j-ease) 1150ms forwards;
+}
+:is(.is-live, .is-in) .rs-pin-dest {
+  animation: j-appear var(--j-d-ui) var(--j-ease) 1850ms forwards;
+}
+:is(.is-live, .is-in) .rs-pulse {
+  animation: rs-pulse 1800ms linear 2050ms 3;
+}
+:is(.is-live, .is-in) .rs-label-a,
+:is(.is-live, .is-in) .rs-label-b {
+  animation: j-appear var(--j-d-ui) var(--j-ease) 900ms forwards;
+}
+:is(.is-live, .is-in) .rs-label-dest {
+  animation: j-appear var(--j-d-ui) var(--j-ease) 1950ms forwards;
+}
+@keyframes rs-pulse {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+@keyframes j-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes j-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes j-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rs-path,
+  .logo-spine {
+    animation: none !important;
+    stroke-dashoffset: 0;
+  }
+  .logo-dot,
+  .rs-pin,
+  .rs-label {
+    animation: none !important;
+    opacity: 1;
+  }
+  .rs-pulse {
+    animation: none !important;
+  }
+}

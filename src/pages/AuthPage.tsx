@@ -2,18 +2,28 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
+  ArrowLeft,
   ArrowRight,
+  BadgeCheck,
+  Bike,
   CarFront,
+  Check,
   Eye,
   EyeOff,
+  Repeat,
   ShieldCheck,
   UsersRound,
+  Wallet,
 } from "lucide-react";
-import { Button } from "../components/ui/button";
 import { useAuthStore } from "../stores/authStore";
 import type { Role } from "../types";
+import { Logo } from "../site/components/Logo";
+import { RouteScene } from "../site/components/RouteScene";
+import "../site/styles/tokens.css";
+import "../site/styles/brand.css";
+import "../site/styles/auth.css";
 
 const common = z.object({
   name: z.string(),
@@ -84,6 +94,12 @@ type FormValues = z.infer<typeof common>;
 export function AuthPage({ mode }: { mode: "signin" | "register" }) {
   const registerMode = mode === "register";
   const navigate = useNavigate();
+  // `/register?role=driver` (from the owner pages) preselects the driver role.
+  const [searchParams] = useSearchParams();
+  const initialRole: Role =
+    registerMode && searchParams.get("role") === "driver"
+      ? "driver"
+      : "passenger";
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState("");
   const { signIn, register: registerAccount } = useAuthStore();
@@ -100,7 +116,7 @@ export function AuthPage({ mode }: { mode: "signin" | "register" }) {
       name: "",
       email: "",
       password: "",
-      role: "passenger",
+      role: initialRole,
       phone: "",
       licenseNumber: "",
       vehicleType: "car",
@@ -111,6 +127,12 @@ export function AuthPage({ mode }: { mode: "signin" | "register" }) {
     },
   });
   const role = watch("role") as Role;
+  const password = watch("password");
+  const passwordRules = [
+    { label: "At least 8 characters", met: password.length >= 8 },
+    { label: "One letter", met: /[A-Za-z]/.test(password) },
+    { label: "One number", met: /[0-9]/.test(password) },
+  ];
   async function submit(values: FormValues) {
     setServerError("");
     try {
@@ -146,316 +168,322 @@ export function AuthPage({ mode }: { mode: "signin" | "register" }) {
       );
     }
   }
+  const fieldError = (message?: string) =>
+    message ? <small className="au-error">{message}</small> : null;
+
   return (
-    <main className="auth-layout">
-      <section className="auth-story">
-        <Link className="brand-lockup auth-brand" to="/signin">
-          <img src="/brand/jatria-symbol.svg" alt="" />
-          <span>Jatria</span>
-        </Link>
-        <div className="story-body">
-          <div className="story-chip">
-            <span /> MOVE TOGETHER, GO FURTHER
-          </div>
-          <h1>
-            Good journeys
-            <br />
-            bring us <em>closer.</em>
-          </h1>
-          <p>
-            Meet your next ride, share the road, and make every journey feel a
-            little more connected.
-          </p>
-          <div className="story-visual">
-            <div className="story-grid" />
-            <div className="story-path">
-              <span />
-              <svg viewBox="0 0 430 210">
-                <path
-                  d="M26 174 C100 190 104 54 197 99 S301 192 402 30"
-                  fill="none"
-                  stroke="#75d9cb"
-                  strokeWidth="3"
-                  strokeDasharray="5 9"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </div>
-            <div className="story-pin pin-a">
-              <span className="map-dot-icon" />
-            </div>
-            <div className="story-pin pin-b">
-              <CarFront size={18} />
-            </div>
-            <div className="story-caption">
-              <span className="caption-avatar">J</span>
-              <span>
-                <b>Trusted rides, shared locally</b>
-                <small>Dhaka, Bangladesh</small>
-              </span>
-              <ShieldCheck size={17} />
-            </div>
-          </div>
-          <div className="story-proof">
-            <div className="proof-avatars">
-              <span>N</span>
-              <span>R</span>
-              <span>S</span>
-              <span>+</span>
-            </div>
-            <span>
-              <b>Built around community</b>
-              <small>Ride with people you can trust</small>
-            </span>
-          </div>
-        </div>
-        <div className="story-footer">
-          © 2026 Jatria <i /> Ride together, move forward.
-        </div>
-      </section>
-      <section className="auth-panel">
-        <div className="auth-form-wrap">
-          <div className="auth-heading">
-            <div className="auth-mobile-brand">
-              <img src="/brand/jatria-symbol.svg" alt="" /> Jatria
-            </div>
-            <div className="eyebrow">
-              {registerMode ? "START YOUR JOURNEY" : "WELCOME BACK"}
-            </div>
-            <h2>
-              {registerMode ? "Create your account" : "Sign in to Jatria"}
-            </h2>
-            <p>
+    <main className="au">
+      <section className="au-main">
+        <header className="au-top">
+          <Link to="/" className="au-logo" aria-label="Jatriya home">
+            <Logo size={30} animate />
+          </Link>
+          <Link to="/" className="au-back">
+            <ArrowLeft size={16} strokeWidth={1.75} aria-hidden /> Back to site
+          </Link>
+        </header>
+
+        <div className="au-wrap" key={mode}>
+          <div className="au-head">
+            <p className="au-eyebrow">
+              {registerMode ? "Join Jatriya" : "Welcome back"}
+            </p>
+            <h1 className="au-title">
+              {registerMode ? "Create your account" : "Log in to Jatriya"}
+            </h1>
+            <p className="au-sub">
               {registerMode
-                ? "Create your Jatria profile to get started."
-                : "Use your Jatria email and password to continue."}
+                ? "Set up your profile to start sharing your daily commute."
+                : "Use your Jatriya email and password to continue."}
             </p>
           </div>
-          <form className="auth-form" onSubmit={handleSubmit(submit)}>
+
+          <form className="au-form" onSubmit={handleSubmit(submit)}>
             {registerMode && (
-              <>
-                <label className="field-label">
-                  Full name
+              <fieldset className="au-group">
+                <legend>About you</legend>
+                <label className="au-field">
+                  <span>Full name</span>
                   <input
-                    className="field-control"
+                    className="au-input"
                     {...register("name")}
                     placeholder="e.g. Nabila Hossain"
                     autoComplete="name"
+                    aria-invalid={!!errors.name}
                   />
-                  {errors.name && (
-                    <small className="field-error">{errors.name.message}</small>
-                  )}
+                  {fieldError(errors.name?.message)}
                 </label>
-                <label className="field-label">
-                  Phone number
+                <label className="au-field">
+                  <span>Phone number</span>
                   <input
-                    className="field-control"
+                    className="au-input"
                     {...register("phone")}
                     placeholder="+8801XXXXXXXXX"
                     autoComplete="tel"
+                    inputMode="tel"
+                    aria-invalid={!!errors.phone}
                   />
-                  {errors.phone && (
-                    <small className="field-error">
-                      {errors.phone.message}
-                    </small>
-                  )}
+                  {fieldError(errors.phone?.message)}
                 </label>
-              </>
-            )}
-            <label className="field-label">
-              Email address
-              <input
-                className="field-control"
-                type="email"
-                {...register("email")}
-                placeholder="you@example.com"
-                autoComplete="email"
-              />
-              {errors.email && (
-                <small className="field-error">{errors.email.message}</small>
-              )}
-            </label>
-            <label className="field-label">
-              Password
-              <span className="password-wrap">
-                <input
-                  className="field-control"
-                  type={showPassword ? "text" : "password"}
-                  {...register("password")}
-                  placeholder={
-                    registerMode
-                      ? "At least 8 characters, with a number"
-                      : "Enter your password"
-                  }
-                  autoComplete={
-                    registerMode ? "new-password" : "current-password"
-                  }
-                />
-                <button
-                  type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                </button>
-              </span>
-              {errors.password && (
-                <small className="field-error">{errors.password.message}</small>
-              )}
-            </label>
-            {registerMode && (
-              <label className="field-label">
-                Confirm password
-                <input
-                  className="field-control"
-                  type="password"
-                  {...register("confirmPassword")}
-                  placeholder="Re-enter your password"
-                  autoComplete="new-password"
-                />
-                {errors.confirmPassword && (
-                  <small className="field-error">
-                    {errors.confirmPassword.message}
-                  </small>
-                )}
-              </label>
-            )}
-            {registerMode && (
-              <fieldset className="role-select">
-                <legend>I'm here as a</legend>
-                <button
-                  type="button"
-                  className={
-                    role === "passenger"
-                      ? "role-option selected"
-                      : "role-option"
-                  }
-                  onClick={() => setValue("role", "passenger")}
-                >
-                  <UsersRound size={17} />
-                  <span>
-                    <b>Passenger</b>
-                    <small>Find a ride</small>
-                  </span>
-                  <i />
-                </button>
-                <button
-                  type="button"
-                  className={
-                    role === "driver" ? "role-option selected" : "role-option"
-                  }
-                  onClick={() => setValue("role", "driver")}
-                >
-                  <CarFront size={18} />
-                  <span>
-                    <b>Driver</b>
-                    <small>Share your ride</small>
-                  </span>
-                  <i />
-                </button>
               </fieldset>
             )}
-            {registerMode && role === "driver" && (
-              <div className="vehicle-onboarding">
-                <div className="vehicle-onboarding-title">
-                  <CarFront size={15} /> Driver and vehicle details
-                </div>
-                <label className="field-label">
-                  Driving license number
+
+            <fieldset className="au-group">
+              {registerMode && <legend>Account</legend>}
+              <label className="au-field">
+                <span>Email address</span>
+                <input
+                  className="au-input"
+                  type="email"
+                  {...register("email")}
+                  placeholder="you@company.com"
+                  autoComplete="email"
+                  aria-invalid={!!errors.email}
+                />
+                {fieldError(errors.email?.message)}
+              </label>
+              <label className="au-field">
+                <span>Password</span>
+                <span className="au-password">
                   <input
-                    className="field-control"
-                    {...register("licenseNumber")}
-                    placeholder="License number"
+                    className="au-input"
+                    type={showPassword ? "text" : "password"}
+                    {...register("password")}
+                    placeholder={
+                      registerMode ? "Create a password" : "Enter your password"
+                    }
+                    autoComplete={
+                      registerMode ? "new-password" : "current-password"
+                    }
+                    aria-invalid={!!errors.password}
                   />
-                  {errors.licenseNumber && (
-                    <small className="field-error">
-                      {errors.licenseNumber.message}
-                    </small>
-                  )}
-                </label>
-                <label className="field-label">
-                  Vehicle type
-                  <select
-                    className="field-control"
-                    {...register("vehicleType")}
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    onClick={() => setShowPassword(!showPassword)}
                   >
-                    <option value="car">Car</option>
-                    <option value="bike">Motorbike</option>
-                  </select>
-                </label>
-                <label className="field-label">
-                  Make and model
+                    {showPassword ? (
+                      <EyeOff size={18} strokeWidth={1.75} />
+                    ) : (
+                      <Eye size={18} strokeWidth={1.75} />
+                    )}
+                  </button>
+                </span>
+                {fieldError(errors.password?.message)}
+              </label>
+              {registerMode && (
+                <ul className="au-rules" aria-label="Password requirements">
+                  {passwordRules.map((rule) => (
+                    <li
+                      key={rule.label}
+                      className={rule.met ? "is-met" : undefined}
+                    >
+                      <span className="au-rule-mark" aria-hidden="true">
+                        <Check size={12} strokeWidth={2.5} />
+                      </span>
+                      {rule.label}
+                      <span className="sr-only">
+                        {rule.met ? " (met)" : " (not met)"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {registerMode && (
+                <label className="au-field">
+                  <span>Confirm password</span>
                   <input
-                    className="field-control"
-                    {...register("vehicleMakeModel")}
-                    placeholder="e.g. Toyota Premio"
+                    className="au-input"
+                    type="password"
+                    {...register("confirmPassword")}
+                    placeholder="Re-enter your password"
+                    autoComplete="new-password"
+                    aria-invalid={!!errors.confirmPassword}
                   />
-                  {errors.vehicleMakeModel && (
-                    <small className="field-error">
-                      {errors.vehicleMakeModel.message}
-                    </small>
-                  )}
+                  {fieldError(errors.confirmPassword?.message)}
                 </label>
-                <div className="vehicle-row">
-                  <label className="field-label">
-                    Color
+              )}
+            </fieldset>
+
+            {registerMode && (
+              <fieldset className="au-group">
+                <legend>How you’ll use Jatriya</legend>
+                <div className="au-roles">
+                  <button
+                    type="button"
+                    className={`au-role${role === "passenger" ? " is-selected" : ""}`}
+                    aria-pressed={role === "passenger"}
+                    onClick={() => setValue("role", "passenger")}
+                  >
+                    <span className="au-role-icon">
+                      <UsersRound size={20} strokeWidth={1.75} />
+                    </span>
+                    <span className="au-role-copy">
+                      <b>Find a seat</b>
+                      <small>Ride with commuters on your route</small>
+                    </span>
+                    <i className="au-role-check" aria-hidden="true">
+                      <Check size={14} strokeWidth={2.5} />
+                    </i>
+                  </button>
+                  <button
+                    type="button"
+                    className={`au-role${role === "driver" ? " is-selected" : ""}`}
+                    aria-pressed={role === "driver"}
+                    onClick={() => setValue("role", "driver")}
+                  >
+                    <span className="au-role-icon">
+                      <CarFront size={20} strokeWidth={1.75} />
+                    </span>
+                    <span className="au-role-copy">
+                      <b>Share my ride</b>
+                      <small>Offer seats in your car or on your bike</small>
+                    </span>
+                    <i className="au-role-check" aria-hidden="true">
+                      <Check size={14} strokeWidth={2.5} />
+                    </i>
+                  </button>
+                </div>
+              </fieldset>
+            )}
+
+            {registerMode && role === "driver" && (
+              <fieldset className="au-group au-vehicle">
+                <legend>Driver and vehicle details</legend>
+                <label className="au-field">
+                  <span>Driving licence number</span>
+                  <input
+                    className="au-input"
+                    {...register("licenseNumber")}
+                    placeholder="Licence number"
+                    aria-invalid={!!errors.licenseNumber}
+                  />
+                  {fieldError(errors.licenseNumber?.message)}
+                </label>
+                <div className="au-row">
+                  <label className="au-field">
+                    <span>Vehicle type</span>
+                    <select
+                      className="au-input au-select"
+                      {...register("vehicleType")}
+                    >
+                      <option value="car">Car</option>
+                      <option value="bike">Motorbike</option>
+                    </select>
+                  </label>
+                  <label className="au-field">
+                    <span>Make and model</span>
                     <input
-                      className="field-control"
+                      className="au-input"
+                      {...register("vehicleMakeModel")}
+                      placeholder="e.g. Toyota Premio"
+                      aria-invalid={!!errors.vehicleMakeModel}
+                    />
+                    {fieldError(errors.vehicleMakeModel?.message)}
+                  </label>
+                </div>
+                <div className="au-row">
+                  <label className="au-field">
+                    <span>Colour</span>
+                    <input
+                      className="au-input"
                       {...register("vehicleColor")}
                       placeholder="Silver"
+                      aria-invalid={!!errors.vehicleColor}
                     />
-                    {errors.vehicleColor && (
-                      <small className="field-error">
-                        {errors.vehicleColor.message}
-                      </small>
-                    )}
+                    {fieldError(errors.vehicleColor?.message)}
                   </label>
-                  <label className="field-label">
-                    Number plate
+                  <label className="au-field">
+                    <span>Number plate</span>
                     <input
-                      className="field-control"
+                      className="au-input"
                       {...register("vehiclePlate")}
                       placeholder="DHAKA-GA-12-3456"
+                      aria-invalid={!!errors.vehiclePlate}
                     />
-                    {errors.vehiclePlate && (
-                      <small className="field-error">
-                        {errors.vehiclePlate.message}
-                      </small>
-                    )}
+                    {fieldError(errors.vehiclePlate?.message)}
                   </label>
                 </div>
-              </div>
+              </fieldset>
             )}
+
             {(serverError || sessionError) && (
-              <div className="form-error" role="alert">
+              <div className="au-alert" role="alert">
                 {serverError || sessionError}
               </div>
             )}
-            <Button
-              className="auth-submit"
+
+            <button
+              className={`au-submit${isSubmitting ? " is-busy" : ""}`}
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting
-                ? "Please wait…"
-                : registerMode
-                  ? "Create account"
-                  : "Sign in"}
-              {!isSubmitting && <ArrowRight size={17} />}
-            </Button>
+              <span>
+                {isSubmitting
+                  ? "Please wait…"
+                  : registerMode
+                    ? "Create account"
+                    : "Log in"}
+              </span>
+              {!isSubmitting && (
+                <ArrowRight size={18} strokeWidth={1.75} aria-hidden />
+              )}
+              {isSubmitting && <i className="au-progress" aria-hidden="true" />}
+            </button>
           </form>
-          <p className="auth-switch">
-            {registerMode ? "Already part of the community?" : "New to Jatria?"}{" "}
+
+          <p className="au-switch">
+            {registerMode ? "Already have an account?" : "New to Jatriya?"}{" "}
             <Link to={registerMode ? "/signin" : "/register"}>
-              {registerMode ? "Sign in" : "Create an account"}
+              {registerMode ? "Log in" : "Create an account"}
             </Link>
           </p>
-          <div className="auth-legal">
-            Your account information is stored securely in Jatria’s Firebase
-            project.
-          </div>
+          <p className="au-legal">
+            Your account details are stored with Jatriya’s secure Firebase
+            authentication.
+          </p>
         </div>
       </section>
+
+      <aside className="au-aside" aria-label="About Jatriya">
+        <div className="au-aside-panel">
+          <div className="au-aside-map is-live" aria-hidden="true">
+            <RouteScene tone="navy" labels={false} />
+          </div>
+          <div className="au-aside-copy">
+            <p className="au-aside-title">Your commute, connected.</p>
+            <ul className="au-aside-points">
+              <li>
+                <BadgeCheck size={18} strokeWidth={1.75} aria-hidden /> Verified
+                office commuters
+              </li>
+              <li>
+                <Repeat size={18} strokeWidth={1.75} aria-hidden /> Planned,
+                recurring rides
+              </li>
+              <li>
+                <Wallet size={18} strokeWidth={1.75} aria-hidden /> Costs shared
+                openly
+              </li>
+              <li>
+                <ShieldCheck size={18} strokeWidth={1.75} aria-hidden /> Live
+                location and SOS
+              </li>
+            </ul>
+          </div>
+          <div className="au-aside-note" aria-hidden="true">
+            <span className="au-aside-icons">
+              <CarFront size={18} strokeWidth={1.75} />
+              <Bike size={18} strokeWidth={1.75} />
+            </span>
+            <span>
+              <b>Move Together. Move Smarter.</b>
+              <small>Dhaka, Bangladesh</small>
+            </span>
+          </div>
+        </div>
+      </aside>
     </main>
   );
 }
