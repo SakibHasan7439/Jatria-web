@@ -1,12 +1,81 @@
-import { getFirebaseApp, isFirebaseConfigured } from './client'
-import type { User } from 'firebase/auth'
+import { getFirebaseApp, isFirebaseConfigured } from "./client";
+import type { User } from "firebase/auth";
 
-export function firebaseAuthConfigured(){return isFirebaseConfigured}
-let persistenceReady:Promise<void>|null=null
-async function getPersistentAuth(){const {getAuth,setPersistence,browserLocalPersistence}=await import('firebase/auth');const auth=getAuth(getFirebaseApp());persistenceReady??=setPersistence(auth,browserLocalPersistence);await persistenceReady;return auth}
-export async function subscribeToAuth(onUser:(user:User|null)=>void,onError:(error:Error)=>void){if(!isFirebaseConfigured)throw new Error('Firebase is not configured.');const {onAuthStateChanged}=await import('firebase/auth');const auth=await getPersistentAuth();return onAuthStateChanged(auth,onUser,onError)}
-export async function createEmailAccount(email:string,password:string,displayName:string){const {createUserWithEmailAndPassword,updateProfile}=await import('firebase/auth');const credential=await createUserWithEmailAndPassword(await getPersistentAuth(),email,password);await updateProfile(credential.user,{displayName});return credential.user}
-export async function signInWithEmail(email:string,password:string){const {signInWithEmailAndPassword}=await import('firebase/auth');const credential=await signInWithEmailAndPassword(await getPersistentAuth(),email,password);return credential.user}
-export async function signOutFirebase(){const {getAuth,signOut}=await import('firebase/auth');await signOut(getAuth(getFirebaseApp()))}
-export async function sendPasswordReset(email:string){const {getAuth,sendPasswordResetEmail}=await import('firebase/auth');await sendPasswordResetEmail(getAuth(getFirebaseApp()),email)}
-export function authErrorMessage(error:unknown){const code=(error as {code?:string})?.code;switch(code){case'auth/email-already-in-use':return'That email already has a Jatria account. Sign in instead.';case'auth/invalid-email':return'Enter a valid email address.';case'auth/invalid-credential':case'auth/user-not-found':case'auth/wrong-password':return'Email or password is incorrect.';case'auth/weak-password':return'Choose a stronger password.';case'auth/too-many-requests':return'Too many attempts. Wait a moment and try again.';case'auth/network-request-failed':return'Network issue. Check your connection and try again.';case'database/permission-denied':return'Firebase denied access. Check the Realtime Database rules.';default:return error instanceof Error?error.message:'Authentication failed. Try again.'}}
+export function firebaseAuthConfigured() {
+  return isFirebaseConfigured;
+}
+let persistenceReady: Promise<void> | null = null;
+async function getPersistentAuth() {
+  const { getAuth, setPersistence, browserLocalPersistence } =
+    await import("firebase/auth");
+  const auth = getAuth(getFirebaseApp());
+  persistenceReady ??= setPersistence(auth, browserLocalPersistence);
+  await persistenceReady;
+  return auth;
+}
+export async function subscribeToAuth(
+  onUser: (user: User | null) => void,
+  onError: (error: Error) => void,
+) {
+  if (!isFirebaseConfigured) throw new Error("Firebase is not configured.");
+  const { onAuthStateChanged } = await import("firebase/auth");
+  const auth = await getPersistentAuth();
+  return onAuthStateChanged(auth, onUser, onError);
+}
+export async function createEmailAccount(
+  email: string,
+  password: string,
+  displayName: string,
+) {
+  const { createUserWithEmailAndPassword, updateProfile } =
+    await import("firebase/auth");
+  const credential = await createUserWithEmailAndPassword(
+    await getPersistentAuth(),
+    email,
+    password,
+  );
+  await updateProfile(credential.user, { displayName });
+  return credential.user;
+}
+export async function signInWithEmail(email: string, password: string) {
+  const { signInWithEmailAndPassword } = await import("firebase/auth");
+  const credential = await signInWithEmailAndPassword(
+    await getPersistentAuth(),
+    email,
+    password,
+  );
+  return credential.user;
+}
+export async function signOutFirebase() {
+  const { getAuth, signOut } = await import("firebase/auth");
+  await signOut(getAuth(getFirebaseApp()));
+}
+export async function sendPasswordReset(email: string) {
+  const { getAuth, sendPasswordResetEmail } = await import("firebase/auth");
+  await sendPasswordResetEmail(getAuth(getFirebaseApp()), email);
+}
+export function authErrorMessage(error: unknown) {
+  const code = (error as { code?: string })?.code;
+  switch (code) {
+    case "auth/email-already-in-use":
+      return "That email already has a Jatria account. Sign in instead.";
+    case "auth/invalid-email":
+      return "Enter a valid email address.";
+    case "auth/invalid-credential":
+    case "auth/user-not-found":
+    case "auth/wrong-password":
+      return "Email or password is incorrect.";
+    case "auth/weak-password":
+      return "Choose a stronger password.";
+    case "auth/too-many-requests":
+      return "Too many attempts. Wait a moment and try again.";
+    case "auth/network-request-failed":
+      return "Network issue. Check your connection and try again.";
+    case "database/permission-denied":
+      return "Firebase denied access. Check the Realtime Database rules.";
+    default:
+      return error instanceof Error
+        ? error.message
+        : "Authentication failed. Try again.";
+  }
+}

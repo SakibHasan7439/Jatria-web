@@ -1,19 +1,461 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, CarFront, Eye, EyeOff, ShieldCheck, UsersRound } from 'lucide-react'
-import { Button } from '../components/ui/button'
-import { useAuthStore } from '../stores/authStore'
-import type { Role } from '../types'
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  CarFront,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  UsersRound,
+} from "lucide-react";
+import { Button } from "../components/ui/button";
+import { useAuthStore } from "../stores/authStore";
+import type { Role } from "../types";
 
-const common=z.object({name:z.string(),email:z.string().email('Enter a valid email address.'),password:z.string().min(8,'Password must be at least 8 characters.'),role:z.enum(['passenger','driver']),phone:z.string(),licenseNumber:z.string(),vehicleType:z.enum(['bike','car']),vehicleMakeModel:z.string(),vehicleColor:z.string(),vehiclePlate:z.string(),confirmPassword:z.string()})
-const signInSchema=common
-const registerSchema=common.extend({name:z.string().trim().min(2,'Enter your full name.').max(80,'Name is too long.'),phone:z.string().trim().regex(/^\+?\d{8,15}$/,'Enter a valid phone number.'),password:z.string().min(8,'Password must be at least 8 characters.').regex(/[A-Za-z]/,'Include at least one letter.').regex(/[0-9]/,'Include at least one number.')}).superRefine((value,context)=>{if(value.password!==value.confirmPassword)context.addIssue({code:'custom',path:['confirmPassword'],message:'Passwords do not match.'});if(value.role==='driver'){if(value.licenseNumber.trim().length<5)context.addIssue({code:'custom',path:['licenseNumber'],message:'Enter your driving license number.'});if(value.vehicleMakeModel.trim().length<2)context.addIssue({code:'custom',path:['vehicleMakeModel'],message:'Enter your vehicle make and model.'});if(value.vehicleColor.trim().length<2)context.addIssue({code:'custom',path:['vehicleColor'],message:'Enter your vehicle color.'});if(value.vehiclePlate.trim().length<3)context.addIssue({code:'custom',path:['vehiclePlate'],message:'Enter your plate number.'})}})
-type FormValues=z.infer<typeof common>
-export function AuthPage({mode}:{mode:'signin'|'register'}){
- const registerMode=mode==='register';const navigate=useNavigate();const [showPassword,setShowPassword]=useState(false);const [serverError,setServerError]=useState('');const {signIn,register:registerAccount}=useAuthStore();const sessionError=useAuthStore((state)=>state.error);const {register,handleSubmit,watch,setValue,formState:{errors,isSubmitting}}=useForm<FormValues>({resolver:zodResolver(registerMode?registerSchema:signInSchema),defaultValues:{name:'',email:'',password:'',role:'passenger',phone:'',licenseNumber:'',vehicleType:'car',vehicleMakeModel:'',vehicleColor:'',vehiclePlate:'',confirmPassword:''}});const role=watch('role') as Role
- async function submit(values:FormValues){setServerError('');try{if(registerMode)await registerAccount(values.name,values.email,values.password,values.role,{phone:values.phone,licenseNumber:values.role==='driver'?values.licenseNumber:undefined,vehicleType:values.role==='driver'?values.vehicleType:undefined,vehicle:values.role==='driver'?{makeModel:values.vehicleMakeModel,color:values.vehicleColor,plate:values.vehiclePlate}:undefined});else await signIn(values.email,values.password);navigate('/app')}catch(caught){setServerError(caught instanceof Error?caught.message:'Something went wrong. Try again.')}}
- return <main className="auth-layout"><section className="auth-story"><Link className="brand-lockup auth-brand" to="/signin"><img src="/brand/jatria-symbol.svg" alt=""/><span>Jatria</span></Link><div className="story-body"><div className="story-chip"><span/> MOVE TOGETHER, GO FURTHER</div><h1>Good journeys<br/>bring us <em>closer.</em></h1><p>Meet your next ride, share the road, and make every journey feel a little more connected.</p><div className="story-visual"><div className="story-grid"/><div className="story-path"><span/><svg viewBox="0 0 430 210"><path d="M26 174 C100 190 104 54 197 99 S301 192 402 30" fill="none" stroke="#75d9cb" strokeWidth="3" strokeDasharray="5 9" strokeLinecap="round"/></svg></div><div className="story-pin pin-a"><span className="map-dot-icon"/></div><div className="story-pin pin-b"><CarFront size={18}/></div><div className="story-caption"><span className="caption-avatar">J</span><span><b>Trusted rides, shared locally</b><small>Dhaka, Bangladesh</small></span><ShieldCheck size={17}/></div></div><div className="story-proof"><div className="proof-avatars"><span>N</span><span>R</span><span>S</span><span>+</span></div><span><b>Built around community</b><small>Ride with people you can trust</small></span></div></div><div className="story-footer">© 2026 Jatria <i/> Ride together, move forward.</div></section><section className="auth-panel"><div className="auth-form-wrap"><div className="auth-heading"><div className="auth-mobile-brand"><img src="/brand/jatria-symbol.svg" alt=""/> Jatria</div><div className="eyebrow">{registerMode?'START YOUR JOURNEY':'WELCOME BACK'}</div><h2>{registerMode?'Create your account':'Sign in to Jatria'}</h2><p>{registerMode?'Create your Jatria profile to get started.':'Use your Jatria email and password to continue.'}</p></div><form className="auth-form" onSubmit={handleSubmit(submit)}>{registerMode&&<><label className="field-label">Full name<input className="field-control" {...register('name')} placeholder="e.g. Nabila Hossain" autoComplete="name"/>{errors.name&&<small className="field-error">{errors.name.message}</small>}</label><label className="field-label">Phone number<input className="field-control" {...register('phone')} placeholder="+8801XXXXXXXXX" autoComplete="tel"/>{errors.phone&&<small className="field-error">{errors.phone.message}</small>}</label></>}<label className="field-label">Email address<input className="field-control" type="email" {...register('email')} placeholder="you@example.com" autoComplete="email"/>{errors.email&&<small className="field-error">{errors.email.message}</small>}</label><label className="field-label">Password<span className="password-wrap"><input className="field-control" type={showPassword?'text':'password'} {...register('password')} placeholder={registerMode?'At least 8 characters, with a number':'Enter your password'} autoComplete={registerMode?'new-password':'current-password'}/><button type="button" aria-label={showPassword?'Hide password':'Show password'} onClick={()=>setShowPassword(!showPassword)}>{showPassword?<EyeOff size={17}/>:<Eye size={17}/>}</button></span>{errors.password&&<small className="field-error">{errors.password.message}</small>}</label>{registerMode&&<label className="field-label">Confirm password<input className="field-control" type="password" {...register('confirmPassword')} placeholder="Re-enter your password" autoComplete="new-password"/>{errors.confirmPassword&&<small className="field-error">{errors.confirmPassword.message}</small>}</label>}{registerMode&&<fieldset className="role-select"><legend>I'm here as a</legend><button type="button" className={role==='passenger'?'role-option selected':'role-option'} onClick={()=>setValue('role','passenger')}><UsersRound size={17}/><span><b>Passenger</b><small>Find a ride</small></span><i/></button><button type="button" className={role==='driver'?'role-option selected':'role-option'} onClick={()=>setValue('role','driver')}><CarFront size={18}/><span><b>Driver</b><small>Share your ride</small></span><i/></button></fieldset>}{registerMode&&role==='driver'&&<div className="vehicle-onboarding"><div className="vehicle-onboarding-title"><CarFront size={15}/> Driver and vehicle details</div><label className="field-label">Driving license number<input className="field-control" {...register('licenseNumber')} placeholder="License number"/>{errors.licenseNumber&&<small className="field-error">{errors.licenseNumber.message}</small>}</label><label className="field-label">Vehicle type<select className="field-control" {...register('vehicleType')}><option value="car">Car</option><option value="bike">Motorbike</option></select></label><label className="field-label">Make and model<input className="field-control" {...register('vehicleMakeModel')} placeholder="e.g. Toyota Premio"/>{errors.vehicleMakeModel&&<small className="field-error">{errors.vehicleMakeModel.message}</small>}</label><div className="vehicle-row"><label className="field-label">Color<input className="field-control" {...register('vehicleColor')} placeholder="Silver"/>{errors.vehicleColor&&<small className="field-error">{errors.vehicleColor.message}</small>}</label><label className="field-label">Number plate<input className="field-control" {...register('vehiclePlate')} placeholder="DHAKA-GA-12-3456"/>{errors.vehiclePlate&&<small className="field-error">{errors.vehiclePlate.message}</small>}</label></div></div>}{(serverError||sessionError)&&<div className="form-error" role="alert">{serverError||sessionError}</div>}<Button className="auth-submit" type="submit" disabled={isSubmitting}>{isSubmitting?'Please wait…':registerMode?'Create account':'Sign in'}{!isSubmitting&&<ArrowRight size={17}/>}</Button></form><p className="auth-switch">{registerMode?'Already part of the community?':'New to Jatria?'} <Link to={registerMode?'/signin':'/register'}>{registerMode?'Sign in':'Create an account'}</Link></p><div className="auth-legal">Your account information is stored securely in Jatria’s Firebase project.</div></div></section></main>
+const common = z.object({
+  name: z.string(),
+  email: z.string().email("Enter a valid email address."),
+  password: z.string().min(8, "Password must be at least 8 characters."),
+  role: z.enum(["passenger", "driver"]),
+  phone: z.string(),
+  licenseNumber: z.string(),
+  vehicleType: z.enum(["bike", "car"]),
+  vehicleMakeModel: z.string(),
+  vehicleColor: z.string(),
+  vehiclePlate: z.string(),
+  confirmPassword: z.string(),
+});
+const signInSchema = common;
+const registerSchema = common
+  .extend({
+    name: z
+      .string()
+      .trim()
+      .min(2, "Enter your full name.")
+      .max(80, "Name is too long."),
+    phone: z
+      .string()
+      .trim()
+      .regex(/^\+?\d{8,15}$/, "Enter a valid phone number."),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters.")
+      .regex(/[A-Za-z]/, "Include at least one letter.")
+      .regex(/[0-9]/, "Include at least one number."),
+  })
+  .superRefine((value, context) => {
+    if (value.password !== value.confirmPassword)
+      context.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "Passwords do not match.",
+      });
+    if (value.role === "driver") {
+      if (value.licenseNumber.trim().length < 5)
+        context.addIssue({
+          code: "custom",
+          path: ["licenseNumber"],
+          message: "Enter your driving license number.",
+        });
+      if (value.vehicleMakeModel.trim().length < 2)
+        context.addIssue({
+          code: "custom",
+          path: ["vehicleMakeModel"],
+          message: "Enter your vehicle make and model.",
+        });
+      if (value.vehicleColor.trim().length < 2)
+        context.addIssue({
+          code: "custom",
+          path: ["vehicleColor"],
+          message: "Enter your vehicle color.",
+        });
+      if (value.vehiclePlate.trim().length < 3)
+        context.addIssue({
+          code: "custom",
+          path: ["vehiclePlate"],
+          message: "Enter your plate number.",
+        });
+    }
+  });
+type FormValues = z.infer<typeof common>;
+export function AuthPage({ mode }: { mode: "signin" | "register" }) {
+  const registerMode = mode === "register";
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [serverError, setServerError] = useState("");
+  const { signIn, register: registerAccount } = useAuthStore();
+  const sessionError = useAuthStore((state) => state.error);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(registerMode ? registerSchema : signInSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      role: "passenger",
+      phone: "",
+      licenseNumber: "",
+      vehicleType: "car",
+      vehicleMakeModel: "",
+      vehicleColor: "",
+      vehiclePlate: "",
+      confirmPassword: "",
+    },
+  });
+  const role = watch("role") as Role;
+  async function submit(values: FormValues) {
+    setServerError("");
+    try {
+      if (registerMode)
+        await registerAccount(
+          values.name,
+          values.email,
+          values.password,
+          values.role,
+          {
+            phone: values.phone,
+            licenseNumber:
+              values.role === "driver" ? values.licenseNumber : undefined,
+            vehicleType:
+              values.role === "driver" ? values.vehicleType : undefined,
+            vehicle:
+              values.role === "driver"
+                ? {
+                    makeModel: values.vehicleMakeModel,
+                    color: values.vehicleColor,
+                    plate: values.vehiclePlate,
+                  }
+                : undefined,
+          },
+        );
+      else await signIn(values.email, values.password);
+      navigate("/app");
+    } catch (caught) {
+      setServerError(
+        caught instanceof Error
+          ? caught.message
+          : "Something went wrong. Try again.",
+      );
+    }
+  }
+  return (
+    <main className="auth-layout">
+      <section className="auth-story">
+        <Link className="brand-lockup auth-brand" to="/signin">
+          <img src="/brand/jatria-symbol.svg" alt="" />
+          <span>Jatria</span>
+        </Link>
+        <div className="story-body">
+          <div className="story-chip">
+            <span /> MOVE TOGETHER, GO FURTHER
+          </div>
+          <h1>
+            Good journeys
+            <br />
+            bring us <em>closer.</em>
+          </h1>
+          <p>
+            Meet your next ride, share the road, and make every journey feel a
+            little more connected.
+          </p>
+          <div className="story-visual">
+            <div className="story-grid" />
+            <div className="story-path">
+              <span />
+              <svg viewBox="0 0 430 210">
+                <path
+                  d="M26 174 C100 190 104 54 197 99 S301 192 402 30"
+                  fill="none"
+                  stroke="#75d9cb"
+                  strokeWidth="3"
+                  strokeDasharray="5 9"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+            <div className="story-pin pin-a">
+              <span className="map-dot-icon" />
+            </div>
+            <div className="story-pin pin-b">
+              <CarFront size={18} />
+            </div>
+            <div className="story-caption">
+              <span className="caption-avatar">J</span>
+              <span>
+                <b>Trusted rides, shared locally</b>
+                <small>Dhaka, Bangladesh</small>
+              </span>
+              <ShieldCheck size={17} />
+            </div>
+          </div>
+          <div className="story-proof">
+            <div className="proof-avatars">
+              <span>N</span>
+              <span>R</span>
+              <span>S</span>
+              <span>+</span>
+            </div>
+            <span>
+              <b>Built around community</b>
+              <small>Ride with people you can trust</small>
+            </span>
+          </div>
+        </div>
+        <div className="story-footer">
+          © 2026 Jatria <i /> Ride together, move forward.
+        </div>
+      </section>
+      <section className="auth-panel">
+        <div className="auth-form-wrap">
+          <div className="auth-heading">
+            <div className="auth-mobile-brand">
+              <img src="/brand/jatria-symbol.svg" alt="" /> Jatria
+            </div>
+            <div className="eyebrow">
+              {registerMode ? "START YOUR JOURNEY" : "WELCOME BACK"}
+            </div>
+            <h2>
+              {registerMode ? "Create your account" : "Sign in to Jatria"}
+            </h2>
+            <p>
+              {registerMode
+                ? "Create your Jatria profile to get started."
+                : "Use your Jatria email and password to continue."}
+            </p>
+          </div>
+          <form className="auth-form" onSubmit={handleSubmit(submit)}>
+            {registerMode && (
+              <>
+                <label className="field-label">
+                  Full name
+                  <input
+                    className="field-control"
+                    {...register("name")}
+                    placeholder="e.g. Nabila Hossain"
+                    autoComplete="name"
+                  />
+                  {errors.name && (
+                    <small className="field-error">{errors.name.message}</small>
+                  )}
+                </label>
+                <label className="field-label">
+                  Phone number
+                  <input
+                    className="field-control"
+                    {...register("phone")}
+                    placeholder="+8801XXXXXXXXX"
+                    autoComplete="tel"
+                  />
+                  {errors.phone && (
+                    <small className="field-error">
+                      {errors.phone.message}
+                    </small>
+                  )}
+                </label>
+              </>
+            )}
+            <label className="field-label">
+              Email address
+              <input
+                className="field-control"
+                type="email"
+                {...register("email")}
+                placeholder="you@example.com"
+                autoComplete="email"
+              />
+              {errors.email && (
+                <small className="field-error">{errors.email.message}</small>
+              )}
+            </label>
+            <label className="field-label">
+              Password
+              <span className="password-wrap">
+                <input
+                  className="field-control"
+                  type={showPassword ? "text" : "password"}
+                  {...register("password")}
+                  placeholder={
+                    registerMode
+                      ? "At least 8 characters, with a number"
+                      : "Enter your password"
+                  }
+                  autoComplete={
+                    registerMode ? "new-password" : "current-password"
+                  }
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </span>
+              {errors.password && (
+                <small className="field-error">{errors.password.message}</small>
+              )}
+            </label>
+            {registerMode && (
+              <label className="field-label">
+                Confirm password
+                <input
+                  className="field-control"
+                  type="password"
+                  {...register("confirmPassword")}
+                  placeholder="Re-enter your password"
+                  autoComplete="new-password"
+                />
+                {errors.confirmPassword && (
+                  <small className="field-error">
+                    {errors.confirmPassword.message}
+                  </small>
+                )}
+              </label>
+            )}
+            {registerMode && (
+              <fieldset className="role-select">
+                <legend>I'm here as a</legend>
+                <button
+                  type="button"
+                  className={
+                    role === "passenger"
+                      ? "role-option selected"
+                      : "role-option"
+                  }
+                  onClick={() => setValue("role", "passenger")}
+                >
+                  <UsersRound size={17} />
+                  <span>
+                    <b>Passenger</b>
+                    <small>Find a ride</small>
+                  </span>
+                  <i />
+                </button>
+                <button
+                  type="button"
+                  className={
+                    role === "driver" ? "role-option selected" : "role-option"
+                  }
+                  onClick={() => setValue("role", "driver")}
+                >
+                  <CarFront size={18} />
+                  <span>
+                    <b>Driver</b>
+                    <small>Share your ride</small>
+                  </span>
+                  <i />
+                </button>
+              </fieldset>
+            )}
+            {registerMode && role === "driver" && (
+              <div className="vehicle-onboarding">
+                <div className="vehicle-onboarding-title">
+                  <CarFront size={15} /> Driver and vehicle details
+                </div>
+                <label className="field-label">
+                  Driving license number
+                  <input
+                    className="field-control"
+                    {...register("licenseNumber")}
+                    placeholder="License number"
+                  />
+                  {errors.licenseNumber && (
+                    <small className="field-error">
+                      {errors.licenseNumber.message}
+                    </small>
+                  )}
+                </label>
+                <label className="field-label">
+                  Vehicle type
+                  <select
+                    className="field-control"
+                    {...register("vehicleType")}
+                  >
+                    <option value="car">Car</option>
+                    <option value="bike">Motorbike</option>
+                  </select>
+                </label>
+                <label className="field-label">
+                  Make and model
+                  <input
+                    className="field-control"
+                    {...register("vehicleMakeModel")}
+                    placeholder="e.g. Toyota Premio"
+                  />
+                  {errors.vehicleMakeModel && (
+                    <small className="field-error">
+                      {errors.vehicleMakeModel.message}
+                    </small>
+                  )}
+                </label>
+                <div className="vehicle-row">
+                  <label className="field-label">
+                    Color
+                    <input
+                      className="field-control"
+                      {...register("vehicleColor")}
+                      placeholder="Silver"
+                    />
+                    {errors.vehicleColor && (
+                      <small className="field-error">
+                        {errors.vehicleColor.message}
+                      </small>
+                    )}
+                  </label>
+                  <label className="field-label">
+                    Number plate
+                    <input
+                      className="field-control"
+                      {...register("vehiclePlate")}
+                      placeholder="DHAKA-GA-12-3456"
+                    />
+                    {errors.vehiclePlate && (
+                      <small className="field-error">
+                        {errors.vehiclePlate.message}
+                      </small>
+                    )}
+                  </label>
+                </div>
+              </div>
+            )}
+            {(serverError || sessionError) && (
+              <div className="form-error" role="alert">
+                {serverError || sessionError}
+              </div>
+            )}
+            <Button
+              className="auth-submit"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? "Please wait…"
+                : registerMode
+                  ? "Create account"
+                  : "Sign in"}
+              {!isSubmitting && <ArrowRight size={17} />}
+            </Button>
+          </form>
+          <p className="auth-switch">
+            {registerMode ? "Already part of the community?" : "New to Jatria?"}{" "}
+            <Link to={registerMode ? "/signin" : "/register"}>
+              {registerMode ? "Sign in" : "Create an account"}
+            </Link>
+          </p>
+          <div className="auth-legal">
+            Your account information is stored securely in Jatria’s Firebase
+            project.
+          </div>
+        </div>
+      </section>
+    </main>
+  );
 }
