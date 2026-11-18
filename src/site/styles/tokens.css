@@ -1,0 +1,114 @@
+/*
+ * Jatriya design tokens — sourced from Jatriya Brand Guidelines 1.0
+ * (05 Colour, 06 Typography, 11 Motion identity).
+ */
+:root {
+  /* Teal — primary */
+  --j-teal-50: #e6f5f6;
+  --j-teal-100: #c2e7ea;
+  --j-teal-200: #8fd3d9;
+  --j-teal-300: #55b9c2;
+  --j-teal-400: #1f9ca8;
+  --j-teal-500: #087f8c;
+  --j-teal-600: #066a75;
+  --j-teal-700: #05555e;
+  --j-teal-800: #063f46;
+  --j-teal-900: #062b30;
+
+  /* Mint — accent (never text on white) */
+  --j-mint-50: #e9fbf8;
+  --j-mint-100: #d3f7f1;
+  --j-mint-200: #a8f0e6;
+  --j-mint-300: #6fe3d3;
+  --j-mint-400: #25c6b2;
+  --j-mint-500: #14a896;
+  --j-mint-600: #0b8777;
+  --j-mint-700: #086a5e;
+
+  /* Tinted neutrals */
+  --j-n-0: #ffffff;
+  --j-n-50: #f4f7f8;
+  --j-n-100: #e8eef0;
+  --j-n-200: #d5dee1;
+  --j-n-300: #b4c2c7;
+  --j-n-400: #8a9ba2;
+  --j-n-500: #566971;
+  --j-n-600: #4a5c64;
+  --j-n-700: #33434a;
+  --j-n-800: #1b2e39;
+  --j-n-900: #13222c;
+  --j-n-950: #0b1720;
+
+  /* Semantic */
+  --j-success: #146c46;
+  --j-success-bg: #e4f5ec;
+  --j-warning: #96500a;
+  --j-warning-bg: #fdf0dc;
+  --j-error: #c22f27;
+  --j-error-bg: #fde8e6;
+  --j-info: #2563c9;
+  --j-info-bg: #e5eefc;
+
+  /* Roles */
+  --j-bg: var(--j-n-50);
+  --j-surface: var(--j-n-0);
+  --j-text: var(--j-n-950);
+  --j-text-2: var(--j-n-500);
+  --j-line: var(--j-n-100);
+  --j-line-strong: var(--j-n-200);
+  --j-primary: var(--j-teal-500);
+  --j-primary-hover: var(--j-teal-600);
+  --j-primary-press: var(--j-teal-700);
+  --j-accent: var(--j-mint-400);
+  --j-focus: 0 0 0 3px var(--j-n-0), 0 0 0 5px var(--j-teal-500);
+
+  /* Type */
+  --j-font:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  --j-display: "opsz" 32;
+  --j-text-opsz: "opsz" 14;
+
+  /* Radii — one family, few steps */
+  --j-r-xs: 6px;
+  --j-r-sm: 8px;
+  --j-r-md: 12px;
+  --j-r-lg: 20px;
+  --j-r-xl: 28px;
+
+  /* Elevation — static, never animated */
+  --j-shadow-1: 0 1px 2px rgba(11, 23, 32, 0.05), 0 1px 1px rgba(11, 23, 32, 0.03);
+  --j-shadow-2:
+    0 1px 2px rgba(11, 23, 32, 0.04), 0 12px 28px -14px rgba(11, 23, 32, 0.2);
+  --j-shadow-3:
+    0 2px 4px rgba(11, 23, 32, 0.04), 0 40px 80px -32px rgba(11, 23, 32, 0.38);
+
+  /* Layout */
+  --j-max: 1200px;
+  --j-gutter: 20px;
+  --j-section: clamp(72px, 9vw, 136px);
+  --j-header-h: 64px;
+
+  /* Motion — five durations, one curve */
+  --j-d-press: 100ms;
+  --j-d-hover: 160ms;
+  --j-d-ui: 240ms;
+  --j-d-move: 400ms;
+  --j-d-logo: 900ms;
+  --j-d-route: 700ms;
+  --j-d-match: 800ms;
+  --j-ease: cubic-bezier(0.2, 0, 0, 1);
+  --j-ease-exit: cubic-bezier(0.3, 0, 1, 1);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --j-gutter: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --j-gutter: 40px;
+    --j-header-h: 72px;
+  }
+}
